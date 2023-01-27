@@ -1,6 +1,45 @@
 import pandas as pd
 
 
+# Rectify the null values by taking the value of the previous row
+# it should be coherent as the average temperature of 1 month shouldn't be very different from the previous one
+# but if several null value are on consecutive rows it won't so accurate
+# because all months will be at the same temperature
+def rectify_null_values(dataset):
+
+    # We can see that AverageTemperature and AverageTemperatureUncertainty contain null values
+    dataset.info()
+
+    # We extract the first line containing null AverageTemperature
+    # and the line before without null value on AverageTemperature
+    null_values_temp = dataset['AverageTemperature'].isnull()
+    null_rows_temp = dataset[null_values_temp]
+    first_null_temp = null_rows_temp.head(1)
+    previous_index_temp = dataset['index'] == first_null_temp['index'].values[0] - 1
+    previous_row_temp = dataset[previous_index_temp]
+    print(previous_row_temp.T)
+    print(first_null_temp.T)
+
+    # same with AverageTemperatureUncertainty
+    # note : the lines are actually the same as those picked for the AverageTemperature
+    null_values_uncertainty = dataset['AverageTemperatureUncertainty'].isnull()
+    null_rows_uncertainty = dataset[null_values_uncertainty]
+    first_null_uncertainty = null_rows_uncertainty.head(1)
+    previous_index_uncertainty = dataset['index'] == first_null_uncertainty['index'].values[0] - 1
+    previous_row_uncertainty = dataset[previous_index_uncertainty]
+    print(previous_row_uncertainty.T)
+    print(first_null_uncertainty.T)
+
+    # rectify null values
+    dataset['AverageTemperature'].fillna(method='ffill', inplace=True)
+    dataset['AverageTemperatureUncertainty'].fillna(method='ffill', inplace=True)
+
+    # check that the value are correctly rectified
+    dataset.info()
+    print(dataset[previous_index_temp].T)
+    print(dataset[null_values_temp].head(1).T)
+
+
 def show_info_of(dataset):
     print('Info :')
     dataset.info()
@@ -19,4 +58,7 @@ if __name__ == '__main__':
     print('Dataset opened : \n', data)
 
     show_info_of(data)
+
+    rectify_null_values(data)
+
 
