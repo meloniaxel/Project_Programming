@@ -68,13 +68,33 @@ def get_temperature_by_city(dataset, city):
     return values
 
 
-def get_temperature_by_country(dataset, country):
-    values = {}
-    for i in range(len(country)):
-        mask = dataset['Country'] == country[i]
-        values[country[i]] = dataset[mask]
+def get_temperature_by_country(dataset):
+    new_data = dataset.groupby(['dt', 'Country']).agg(
+        AverageTemperature=('AverageTemperature', 'mean'),
+        AverageTemperatureUncertainty=('AverageTemperatureUncertainty', 'mean')).reset_index()
+    new_data = new_data.sort_values(by=['Country', 'dt'])
+    return new_data
 
-    return values
+
+def get_temperature_by_continent(dataset):
+    Asia = ['India', 'Syria', 'Turkey', 'Iraq', 'Thailand', 'China', 'Bangladesh', 'Pakistan', 'Vietnam', 'Indonesia',
+            'Saudi Arabia', 'Afghanistan', 'Philippines', 'Iran', 'Russia', 'Japan', 'Burma', 'South Korea',
+            'Singapore', 'Taiwan']
+    Europe = ['Germany', 'Ukraine', 'United Kingdom', 'Spain', 'France', 'Italy']
+    America = ['Brazil', 'Colombia', 'United States', 'Peru', 'Mexico', 'Canada', 'Chile', 'Dominican Republic']
+    Oceania = ['Australia']
+    Africa = ['Côte D\'Ivoire', 'Ethiopia', 'Egypt', 'South Africa', 'Morocco', 'Senegal', 'Tanzania', 'Zimbabwe',
+              'Nigeria', 'Congo (Democratic Republic Of The)', 'Angola', 'Somalia', 'Kenya', 'Sudan']
+
+    renamed_country = dataset.replace(Asia, 'Asia').replace(Europe, 'Europe').replace(America, 'America').replace(
+        Oceania, 'Oceania').replace(Africa, 'Africa')
+    data_by_continent = renamed_country.groupby(['dt', 'Country']).agg(
+        AverageTemperature=('AverageTemperature', 'mean'),
+        AverageTemperatureUncertainty=('AverageTemperatureUncertainty', 'mean')).reset_index()
+    data_by_continent = data_by_continent.sort_values(by=['Country', 'dt'])
+
+    return data_by_continent
+
 
 def show_info_of(dataset):
     print('Info :')
@@ -98,5 +118,6 @@ if __name__ == '__main__':
 
     rectify_null_values(data)
 
-    tempByCity = get_temperature_by_city(data, ['Abidjan', 'Paris'])
-    tempByCountry = get_temperature_by_country(data, ['United States'])
+    tempByCity = get_temperature_by_city(data, ['Abidjan', 'Paris'])  # maybe useless
+    tempByCountry = get_temperature_by_country(data)
+    tempByContinent = get_temperature_by_continent(data)
