@@ -96,6 +96,25 @@ def get_temperature_by_continent(dataset):
     return data_by_continent
 
 
+# We divide the latitude into 3 groups :
+# - Equator = city with latitude contained between 30°N and 30°S
+# - Sud = city with latitude between 30°S and Pole Sud (90°S)
+# - North = city with latitude between 30°N and Pole Nord (90°N)
+def get_temperature_by_latitude(dataset):
+    data = dataset.copy()
+    Equator_regex = '^[0-2](.)*\.(.)*|^[0-9]\.(.)*'
+    North_regex = '[3-9](.)*N'
+    South_regex = '[3-9](.)*S'
+    data['Latitude'] = data['Latitude'].replace(Equator_regex, 'Equator', regex=True).replace(
+        North_regex, 'North',regex=True).replace(South_regex, 'South', regex=True)
+    data_by_lat = data.groupby(['dt', 'Latitude']).agg(
+        AverageTemperature=('AverageTemperature', 'mean'),
+        AverageTemperatureUncertainty=('AverageTemperatureUncertainty', 'mean')).reset_index()
+    data_by_lat = data_by_lat.sort_values(by=['Latitude', 'dt'])
+
+    return data_by_lat
+
+
 def show_info_of(dataset):
     print('Info :')
     dataset.info()
@@ -121,3 +140,5 @@ if __name__ == '__main__':
     tempByCity = get_temperature_by_city(data, ['Abidjan', 'Paris'])  # maybe useless
     tempByCountry = get_temperature_by_country(data)
     tempByContinent = get_temperature_by_continent(data)
+    tempByLatitude = get_temperature_by_latitude(data)
+    print(tempByLatitude)
