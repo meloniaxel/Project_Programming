@@ -6,7 +6,6 @@ import pandas as pd
 # but if several null value are on consecutive rows it won't so accurate
 # because all months will be at the same temperature
 def rectify_null_values(dataset):
-
     # We can see that AverageTemperature and AverageTemperatureUncertainty contain null values
     dataset.info()
 
@@ -40,6 +39,21 @@ def rectify_null_values(dataset):
     print(dataset[null_values_temp].head(1).T)
 
 
+def explore_data(dataset):
+    print("The dates go from", dataset.dt.min(), 'to', dataset.dt.max())
+    print(" Here is the list of the cities of the dataset :\n", dataset.City.unique())
+    print(" Here is the list of the countries of the dataset :\n", dataset.Country.unique())
+
+    # Convert date string type in date time and keep only the year
+    dataset['dt'] = pd.to_datetime(dataset['dt'])
+    dataset['dt'] = dataset['dt'].dt.year
+    # Group data by years keeping the mean temperature and mean temperature uncertainty of each year
+    new_data = dataset.groupby(['dt', 'City', 'Country', 'Latitude', 'Longitude']).agg(
+        Average=('AverageTemperature', 'mean'), Uncert=('AverageTemperatureUncertainty', 'mean')).reset_index()
+
+    return new_data
+
+
 def show_info_of(dataset):
     print('Info :')
     dataset.info()
@@ -52,13 +66,12 @@ def show_info_of(dataset):
 
 
 if __name__ == '__main__':
-
     # Opening dataset
     data = pd.read_csv('./datasets/GlobalLandTemperaturesByMajorCity.csv')
     print('Dataset opened : \n', data)
 
     show_info_of(data)
 
-    rectify_null_values(data)
+    data = explore_data(data)
 
-
+    # rectify_null_values(data)
