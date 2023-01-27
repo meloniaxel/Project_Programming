@@ -68,6 +68,14 @@ def get_temperature_by_city(dataset, city):
     return values
 
 
+def get_temperature_by_country(dataset, country):
+    values = {}
+    for i in range(len(country)):
+        mask = dataset['Country'] == country[i]
+        values[country[i]] = dataset[mask]
+
+    return values
+
 def show_info_of(dataset):
     print('Info :')
     dataset.info()
@@ -91,4 +99,4 @@ if __name__ == '__main__':
     rectify_null_values(data)
 
     tempByCity = get_temperature_by_city(data, ['Abidjan', 'Paris'])
-
+    tempByCountry = get_temperature_by_country(data, ['United States'])
