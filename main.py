@@ -51,11 +51,21 @@ def explore_data(dataset):
     dataset['dt'] = dataset['dt'].dt.year
     # Group data by years keeping the mean temperature and mean temperature uncertainty of each year
     new_data = dataset.groupby(['dt', 'City', 'Country', 'Latitude', 'Longitude']).agg(
-        AverageTemperature=('AverageTemperature', 'mean'), AverageTemperatureUncertainty=('AverageTemperatureUncertainty', 'mean')).reset_index()
+        AverageTemperature=('AverageTemperature', 'mean'),
+        AverageTemperatureUncertainty=('AverageTemperatureUncertainty', 'mean')).reset_index()
 
     new_data = new_data.sort_values(by=['City', 'dt'])
 
     return new_data
+
+
+def get_temperature_by_city(dataset, city):
+    values = {}
+    for i in range(len(city)):
+        mask = dataset['City'] == city[i]
+        values[city[i]] = dataset[mask]
+
+    return values
 
 
 def show_info_of(dataset):
@@ -79,3 +89,6 @@ if __name__ == '__main__':
     data = explore_data(data)
 
     rectify_null_values(data)
+
+    tempByCity = get_temperature_by_city(data, ['Abidjan', 'Paris'])
+
