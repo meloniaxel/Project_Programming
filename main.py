@@ -14,8 +14,9 @@ def rectify_null_values(dataset):
     null_values_temp = dataset['AverageTemperature'].isnull()
     null_rows_temp = dataset[null_values_temp]
     first_null_temp = null_rows_temp.head(1)
-    previous_index_temp = dataset['index'] == first_null_temp['index'].values[0] - 1
-    previous_row_temp = dataset[previous_index_temp]
+    previous_index_temp = dataset['dt'] == first_null_temp['dt'].values[0] - 1
+    previous_index_city = dataset['City'] == first_null_temp['City'].values[0]
+    previous_row_temp = dataset[previous_index_temp & previous_index_city]
     print(previous_row_temp.T)
     print(first_null_temp.T)
 
@@ -24,18 +25,19 @@ def rectify_null_values(dataset):
     null_values_uncertainty = dataset['AverageTemperatureUncertainty'].isnull()
     null_rows_uncertainty = dataset[null_values_uncertainty]
     first_null_uncertainty = null_rows_uncertainty.head(1)
-    previous_index_uncertainty = dataset['index'] == first_null_uncertainty['index'].values[0] - 1
-    previous_row_uncertainty = dataset[previous_index_uncertainty]
+    previous_index_uncertainty = dataset['dt'] == first_null_uncertainty['dt'].values[0] - 1
+    previous_index_city = dataset['City'] == first_null_uncertainty['City'].values[0]
+    previous_row_uncertainty = dataset[previous_index_uncertainty & previous_index_city]
     print(previous_row_uncertainty.T)
     print(first_null_uncertainty.T)
 
-    # rectify null values
+    # rectify null values (!data must be sorted by city and date!)
     dataset['AverageTemperature'].fillna(method='ffill', inplace=True)
     dataset['AverageTemperatureUncertainty'].fillna(method='ffill', inplace=True)
 
     # check that the value are correctly rectified
     dataset.info()
-    print(dataset[previous_index_temp].T)
+    print(dataset[previous_index_temp & previous_index_city].T)
     print(dataset[null_values_temp].head(1).T)
 
 
@@ -49,7 +51,9 @@ def explore_data(dataset):
     dataset['dt'] = dataset['dt'].dt.year
     # Group data by years keeping the mean temperature and mean temperature uncertainty of each year
     new_data = dataset.groupby(['dt', 'City', 'Country', 'Latitude', 'Longitude']).agg(
-        Average=('AverageTemperature', 'mean'), Uncert=('AverageTemperatureUncertainty', 'mean')).reset_index()
+        AverageTemperature=('AverageTemperature', 'mean'), AverageTemperatureUncertainty=('AverageTemperatureUncertainty', 'mean')).reset_index()
+
+    new_data = new_data.sort_values(by=['City', 'dt'])
 
     return new_data
 
@@ -74,4 +78,4 @@ if __name__ == '__main__':
 
     data = explore_data(data)
 
-    # rectify_null_values(data)
+    rectify_null_values(data)
