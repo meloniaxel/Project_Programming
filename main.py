@@ -163,6 +163,7 @@ def plot_world_temp_evolution(dataset):
 def generic_plot_temp_evolution(dataset, names, subject=''):
     years_list = []
     y_list = []
+    error_list = []
     for i in range(len(names)):
         name = names[i]
         years = dataset[name]['dt']
@@ -172,27 +173,57 @@ def generic_plot_temp_evolution(dataset, names, subject=''):
         rolled_data = dataset[name].AverageTemperature.rolling(15).mean()
         y_list.append(temp)
         y_list.append(rolled_data)
+        uncertainty = dataset[name]['AverageTemperatureUncertainty']
+        error_list.append(uncertainty)
+        error_list.append(uncertainty)
     if len(names) == 1:
         plot_data(years_list, y_list, 'Average Temperature Evolution of ' + names[0], 'Years',
-                  'Average Temperature', ['real data', 'smoothed data'])
+                  'Average Temperature', ['real data', 'smoothed data'], error_list)
     else:
         labels_list = []
         for i in range(len(names)):
             labels_list.append(names[i] + '(real data)')
             labels_list.append(names[i] + '(smoothed data)')
         plot_data(years_list, y_list, 'Average Temperature Evolution of ' + subject, 'Years',
-                  'Average Temperature', labels_list)
+                  'Average Temperature', labels_list, error_list)
 
 
-def plot_data(x_list, y_list, title, x_label, y_label, y_list_labels):
+def plot_data(x_list, y_list, title, x_label, y_label, y_list_labels, uncertainty_list):
     plt.figure(figsize=(20, 16))
     plt.title(title)
     for i in range(len(y_list)):
-        plt.plot(x_list[i], y_list[i], label=y_list_labels[i])
+        plt.errorbar(x_list[i], y_list[i], uncertainty_list[i], label=y_list_labels[i])
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.legend()
     plt.show()
+
+
+def find_most_affected_cities(dataset):
+    delta_values = []
+    city_list = dataset.City.unique()
+    for i in range(len(city_list)):
+        mask = dataset['City'] == city_list[i]
+        res = dataset[mask]
+        delta = res.AverageTemperature.max() - res.AverageTemperature.min()
+        delta_values.append(delta)
+    delta_data = pd.DataFrame({'City':city_list, 'Delta':delta_values}).sort_values(by=['Delta'], ascending=False)
+    print('Most affected cities :\n',delta_data.head())
+    print('Less affected cities :\n', delta_data.tail().sort_values(by='Delta'))
+
+
+def find_most_affected_countries(dataset):
+    country_data = get_temperatures_by_country(dataset)
+    delta_values = []
+    country_list = country_data.Country.unique()
+    for i in range(len(country_list)):
+        mask = country_data['Country'] == country_list[i]
+        res = country_data[mask]
+        delta = res.AverageTemperature.max() - res.AverageTemperature.min()
+        delta_values.append(delta)
+    delta_data = pd.DataFrame({'Country':country_list, 'Delta':delta_values}).sort_values(by=['Delta'], ascending=False)
+    print('Most affected countries :\n',delta_data.head())
+    print('Less affected countries :\n', delta_data.tail().sort_values(by='Delta'))
 
 
 def show_info_of(dataset):
@@ -227,6 +258,7 @@ if __name__ == '__main__':
     # plot_temp_evolution_of_continent(data, ['Europe'])
     # plot_temp_evolution_of_all_continent(data)
     # plot_temp_evolution_by_latitude(data)
+    # plot_world_temp_evolution(data)
 
-    get_world_temperature(data)
-    plot_world_temp_evolution(data)
+    find_most_affected_cities(data)
+    find_most_affected_countries(data)
