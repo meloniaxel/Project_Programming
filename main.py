@@ -61,16 +61,7 @@ def explore_data(dataset):
     return new_data
 
 
-def get_temperature_by_city(dataset, city):
-    values = {}
-    for i in range(len(city)):
-        mask = dataset['City'] == city[i]
-        values[city[i]] = dataset[mask]
-
-    return values
-
-
-def get_temperature_by_country(dataset):
+def get_temperatures_by_country(dataset):
     new_data = dataset.groupby(['dt', 'Country']).agg(
         AverageTemperature=('AverageTemperature', 'mean'),
         AverageTemperatureUncertainty=('AverageTemperatureUncertainty', 'mean')).reset_index()
@@ -78,7 +69,7 @@ def get_temperature_by_country(dataset):
     return new_data
 
 
-def get_temperature_by_continent(dataset):
+def get_temperatures_by_continent(dataset):
     Asia = ['India', 'Syria', 'Turkey', 'Iraq', 'Thailand', 'China', 'Bangladesh', 'Pakistan', 'Vietnam', 'Indonesia',
             'Saudi Arabia', 'Afghanistan', 'Philippines', 'Iran', 'Russia', 'Japan', 'Burma', 'South Korea',
             'Singapore', 'Taiwan']
@@ -102,7 +93,7 @@ def get_temperature_by_continent(dataset):
 # - Equator = city with latitude contained between 30°N and 30°S
 # - Sud = city with latitude between 30°S and Pole Sud (90°S)
 # - North = city with latitude between 30°N and Pole Nord (90°N)
-def get_temperature_by_latitude(dataset):
+def get_temperatures_by_latitude(dataset):
     data = dataset.copy()
     Equator_regex = '^[0-2](.)*\.(.)*|^[0-9]\.(.)*'
     North_regex = '[3-9](.)*N'
@@ -117,12 +108,31 @@ def get_temperature_by_latitude(dataset):
     return data_by_lat
 
 
+def get_temperatures_of(dataset, names, column):
+    values = {}
+    for i in range(len(names)):
+        mask = dataset[column] == names[i]
+        values[names[i]] = dataset[mask]
+
+    return values
+
+
 def plot_temp_evolution_of_city(dataset, city_name):
-    res = get_temperature_by_city(dataset, [city_name])
-    years = res[city_name]['dt']
-    temp = res[city_name]['AverageTemperature']
-    rolled_data = res[city_name].AverageTemperature.rolling(15).mean()
-    plot_data(years, [temp, rolled_data], 'Average Temperature Evolution of '+city_name, 'Years',
+    res = get_temperatures_of(dataset, [city_name], 'City')
+    generic_plot_temp_evolution(res, city_name)
+
+
+def plot_temp_evolution_of_country(dataset, country_name):
+    countries_data = get_temperatures_by_country(dataset)
+    res = get_temperatures_of(countries_data, [country_name], 'Country')
+    generic_plot_temp_evolution(res, country_name)
+
+
+def generic_plot_temp_evolution(dataset, name):
+    years = dataset[name]['dt']
+    temp = dataset[name]['AverageTemperature']
+    rolled_data = dataset[name].AverageTemperature.rolling(15).mean()
+    plot_data(years, [temp, rolled_data], 'Average Temperature Evolution of ' + name, 'Years',
               'Average Temperature', ['real data', 'smoothed data'])
 
 
@@ -159,9 +169,10 @@ if __name__ == '__main__':
 
     rectify_null_values(data)
 
-    tempByCity = get_temperature_by_city(data, ['Abidjan', 'Paris'])  # maybe useless
-    tempByCountry = get_temperature_by_country(data)
-    tempByContinent = get_temperature_by_continent(data)
-    tempByLatitude = get_temperature_by_latitude(data)
+    tempByCity = get_temperatures_of(data, ['Abidjan', 'Paris'], 'City')
+    tempByCountry = get_temperatures_by_country(data)
+    tempByContinent = get_temperatures_by_continent(data)
+    tempByLatitude = get_temperatures_by_latitude(data)
     plot_temp_evolution_of_city(data, 'Abidjan')
     plot_temp_evolution_of_city(data, 'Paris')
+    plot_temp_evolution_of_country(data, 'United States')
