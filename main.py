@@ -200,7 +200,16 @@ def plot_data(x_list, y_list, title, x_label, y_label, y_list_labels, uncertaint
 
 
 def find_most_affected_cities(dataset):
-    print("")
+    delta_values = []
+    city_list = dataset.City.unique()
+    for i in range(len(city_list)):
+        mask = dataset['City'] == city_list[i]
+        res = dataset[mask]
+        delta = res.AverageTemperature.max() - res.AverageTemperature.min()
+        delta_values.append(delta)
+    delta_data = pd.DataFrame({'City':city_list, 'Delta':delta_values}).sort_values(by=['Delta'], ascending=False)
+    print('Most affected cities :\n',delta_data.head())
+    print('Less affected cities :\n', delta_data.tail().sort_values(by='Delta'))
 
 
 def show_info_of(dataset):
@@ -230,11 +239,11 @@ if __name__ == '__main__':
     tempByContinent = get_temperatures_by_continent(data)
     tempByLatitude = get_temperatures_by_latitude(data)
 
-    plot_temp_evolution_of_city(data, ['Abidjan'])
-    plot_temp_evolution_of_country(data, ['United States'])
-    plot_temp_evolution_of_continent(data, ['Europe'])
-    plot_temp_evolution_of_all_continent(data)
-    plot_temp_evolution_by_latitude(data)
+    # plot_temp_evolution_of_city(data, ['Abidjan'])
+    # plot_temp_evolution_of_country(data, ['United States'])
+    # plot_temp_evolution_of_continent(data, ['Europe'])
+    # plot_temp_evolution_of_all_continent(data)
+    # plot_temp_evolution_by_latitude(data)
+    # plot_world_temp_evolution(data)
 
-    get_world_temperature(data)
-    plot_world_temp_evolution(data)
+    find_most_affected_cities(data)
