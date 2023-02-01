@@ -141,6 +141,13 @@ def plot_temp_evolution_of_all_continent(dataset):
     generic_plot_temp_evolution(res, continents, 'continents')
 
 
+def plot_temp_evolution_by_latitude(dataset):
+    latitude_data = get_temperatures_by_latitude(dataset)
+    latitudes = ['North', 'Equator', 'South']
+    res = get_temperatures_of(latitude_data, latitudes, 'Latitude')
+    generic_plot_temp_evolution(res, latitudes, 'latitudes')
+
+
 def generic_plot_temp_evolution(dataset, names, subject=''):
     years_list = []
     y_list = []
@@ -207,3 +214,4 @@ if __name__ == '__main__':
     plot_temp_evolution_of_country(data, ['United States'])
     plot_temp_evolution_of_continent(data, ['Europe'])
     plot_temp_evolution_of_all_continent(data)
+    plot_temp_evolution_by_latitude(data)
