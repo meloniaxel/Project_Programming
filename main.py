@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -8,8 +7,10 @@ import matplotlib.pyplot as plt
 # but if several null value are on consecutive rows it won't so accurate
 # because all months will be at the same temperature
 def rectify_null_values(dataset):
-    # We can see that AverageTemperature and AverageTemperatureUncertainty contain null values
-    dataset.info()
+    print("\n#######################")
+    print("Rectification of the dataset (fill null value with nearby values) ... \n")
+    # Uncomment to see that AverageTemperature and AverageTemperatureUncertainty contain null values
+    # dataset.info()
 
     # We extract the first line containing null AverageTemperature
     # and the line before without null value on AverageTemperature
@@ -19,8 +20,6 @@ def rectify_null_values(dataset):
     previous_index_temp = dataset['dt'] == first_null_temp['dt'].values[0] - 1
     previous_index_city = dataset['City'] == first_null_temp['City'].values[0]
     previous_row_temp = dataset[previous_index_temp & previous_index_city]
-    print(previous_row_temp.T)
-    print(first_null_temp.T)
 
     # same with AverageTemperatureUncertainty
     # note : the lines are actually the same as those picked for the AverageTemperature
@@ -30,23 +29,19 @@ def rectify_null_values(dataset):
     previous_index_uncertainty = dataset['dt'] == first_null_uncertainty['dt'].values[0] - 1
     previous_index_city = dataset['City'] == first_null_uncertainty['City'].values[0]
     previous_row_uncertainty = dataset[previous_index_uncertainty & previous_index_city]
-    print(previous_row_uncertainty.T)
-    print(first_null_uncertainty.T)
 
     # rectify null values (!data must be sorted by city and date!)
     dataset['AverageTemperature'].fillna(method='ffill', inplace=True)
     dataset['AverageTemperatureUncertainty'].fillna(method='ffill', inplace=True)
 
-    # check that the value are correctly rectified
-    dataset.info()
-    print(dataset[previous_index_temp & previous_index_city].T)
-    print(dataset[null_values_temp].head(1).T)
+    # uncomment to check that the value are correctly rectified
+    # dataset.info()
 
 
 def explore_data(dataset):
-    print("The dates go from", dataset.dt.min(), 'to', dataset.dt.max())
-    print(" Here is the list of the cities of the dataset :\n", dataset.City.unique())
-    print(" Here is the list of the countries of the dataset :\n", dataset.Country.unique())
+    print(" ## The dates go from", dataset.dt.min(), 'to', dataset.dt.max())
+    print(" ## Here is the list of the cities of the dataset :\n", dataset.City.unique())
+    print(" ## Here is the list of the countries of the dataset :\n", dataset.Country.unique())
 
     # Convert date string type in date time and keep only the year
     dataset['dt'] = pd.to_datetime(dataset['dt'])
@@ -208,8 +203,8 @@ def find_most_affected_cities(dataset):
         delta = res.AverageTemperature.max() - res.AverageTemperature.min()
         delta_values.append(delta)
     delta_data = pd.DataFrame({'City':city_list, 'Delta':delta_values}).sort_values(by=['Delta'], ascending=False)
-    print('Most affected cities :\n',delta_data.head())
-    print('Less affected cities :\n', delta_data.tail().sort_values(by='Delta'))
+    print('\n # Most affected cities :\n',delta_data.head())
+    print('\n # Less affected cities :\n', delta_data.tail().sort_values(by='Delta'))
 
 
 def find_most_affected_countries(dataset):
@@ -222,43 +217,72 @@ def find_most_affected_countries(dataset):
         delta = res.AverageTemperature.max() - res.AverageTemperature.min()
         delta_values.append(delta)
     delta_data = pd.DataFrame({'Country':country_list, 'Delta':delta_values}).sort_values(by=['Delta'], ascending=False)
-    print('Most affected countries :\n',delta_data.head())
-    print('Less affected countries :\n', delta_data.tail().sort_values(by='Delta'))
+    print('\n # Most affected countries :\n',delta_data.head())
+    print('\n # Less affected countries :\n', delta_data.tail().sort_values(by='Delta'))
 
 
 def show_info_of(dataset):
-    print('Info :')
+    print('\n ## Info of the dataset:')
     dataset.info()
-    print('Describe :')
+    print('\n ## Description of the dataset :')
     print(dataset.describe())
+    print('\n ## Example values of the dataset :')
     print('5 first lines :')
     print(dataset.head(5))
-    print('5 last lines :')
+    print('\n5 last lines :')
     print(dataset.tail(5))
 
 
 if __name__ == '__main__':
     # Opening dataset
     data = pd.read_csv('./datasets/GlobalLandTemperaturesByMajorCity.csv')
-    print('Dataset opened : \n', data)
+    print('#####################"')
+    print('Following dataset has been opened : GlobalLandTemperaturesByMajorCity.csv \n')
 
+    print('#####################')
+    print('Here are some useful info about the dataset :')
     show_info_of(data)
 
+    print('\n#####################')
+    print('Let\'s explore the values of the dataset :')
     data = explore_data(data)
 
     rectify_null_values(data)
 
-    tempByCity = get_temperatures_of(data, ['Abidjan', 'Paris'], 'City')
-    tempByCountry = get_temperatures_by_country(data)
-    tempByContinent = get_temperatures_by_continent(data)
-    tempByLatitude = get_temperatures_by_latitude(data)
-
-    # plot_temp_evolution_of_city(data, ['Abidjan'])
-    # plot_temp_evolution_of_country(data, ['United States'])
-    # plot_temp_evolution_of_continent(data, ['Europe'])
-    # plot_temp_evolution_of_all_continent(data)
-    # plot_temp_evolution_by_latitude(data)
-    # plot_world_temp_evolution(data)
-
+    print("#####################")
+    print("Find the most and less affected cities and countries of our data by the evolution of the temperatures :")
     find_most_affected_cities(data)
     find_most_affected_countries(data)
+
+    print("####################")
+    print("We can plot some evolution of the average temperature :\n")
+    print("here are the available city : \n", data.City.unique())
+    city = input("\n Please, enter a city that you want to see his plot temperature :")
+    plot_temp_evolution_of_city(data, [city])
+
+    print("\nHere are the available country : \n", data.Country.unique())
+    country = input("\nPlease, enter a country that you want to see his plot temperature :")
+    plot_temp_evolution_of_country(data, [country])
+
+    print("\nHere are the available continent : Asia, Africa, Europe, America, Oceania")
+    continent = input("Please, enter a continent that you want to see his plot temperature :")
+    plot_temp_evolution_of_continent(data, [continent])
+
+    choice = 1
+    while choice != 0:
+        print("\nWhat do you like to see now :")
+        print(' - 1: Evolution of average temperature of all the continent')
+        print(' - 2: Evolution of average temperature depending on the latitude')
+        print(' - 3: Evolution of the world average temperature depending on the latitude')
+        print(' - 0: Nothing')
+        choice = int(input('\ntype here what you would like : '))
+
+        if choice == 1:
+            plot_temp_evolution_of_all_continent(data)
+        elif choice == 2:
+            plot_temp_evolution_by_latitude(data)
+        elif choice == 3:
+            plot_world_temp_evolution(data)
+        elif choice != 0:
+            print('type 0 to exit')
+
