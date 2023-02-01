@@ -212,6 +212,20 @@ def find_most_affected_cities(dataset):
     print('Less affected cities :\n', delta_data.tail().sort_values(by='Delta'))
 
 
+def find_most_affected_countries(dataset):
+    country_data = get_temperatures_by_country(dataset)
+    delta_values = []
+    country_list = country_data.Country.unique()
+    for i in range(len(country_list)):
+        mask = country_data['Country'] == country_list[i]
+        res = country_data[mask]
+        delta = res.AverageTemperature.max() - res.AverageTemperature.min()
+        delta_values.append(delta)
+    delta_data = pd.DataFrame({'Country':country_list, 'Delta':delta_values}).sort_values(by=['Delta'], ascending=False)
+    print('Most affected countries :\n',delta_data.head())
+    print('Less affected countries :\n', delta_data.tail().sort_values(by='Delta'))
+
+
 def show_info_of(dataset):
     print('Info :')
     dataset.info()
@@ -247,3 +261,4 @@ if __name__ == '__main__':
     # plot_world_temp_evolution(data)
 
     find_most_affected_cities(data)
+    find_most_affected_countries(data)
