@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import streamlit as st
 
 
 # Rectify the null values by taking the value of the previous row
@@ -94,7 +95,7 @@ def get_temperatures_by_latitude(dataset):
     North_regex = '[3-9](.)*N'
     South_regex = '[3-9](.)*S'
     data['Latitude'] = data['Latitude'].replace(Equator_regex, 'Equator', regex=True).replace(
-        North_regex, 'North',regex=True).replace(South_regex, 'South', regex=True)
+        North_regex, 'North', regex=True).replace(South_regex, 'South', regex=True)
     data_by_lat = data.groupby(['Latitude', 'dt']).agg(
         AverageTemperature=('AverageTemperature', 'mean'),
         AverageTemperatureUncertainty=('AverageTemperatureUncertainty', 'mean')).reset_index()
@@ -104,7 +105,7 @@ def get_temperatures_by_latitude(dataset):
 
 
 def get_world_temperature(dataset):
-    return data.groupby(['dt']).agg(
+    return dataset.groupby(['dt']).agg(
         AverageTemperature=('AverageTemperature', 'mean'),
         AverageTemperatureUncertainty=('AverageTemperatureUncertainty', 'mean')).reset_index()
 
@@ -120,13 +121,13 @@ def get_temperatures_of(dataset, names, column):
 
 def plot_temp_evolution_of_city(dataset, city_name):
     res = get_temperatures_of(dataset, city_name, 'City')
-    generic_plot_temp_evolution(res, city_name)
+    return generic_plot_temp_evolution(res, city_name)
 
 
 def plot_temp_evolution_of_country(dataset, country_name):
     countries_data = get_temperatures_by_country(dataset)
     res = get_temperatures_of(countries_data, country_name, 'Country')
-    generic_plot_temp_evolution(res, country_name)
+    return generic_plot_temp_evolution(res, country_name)
 
 
 def plot_temp_evolution_of_continent(dataset, continent_name):
@@ -152,7 +153,7 @@ def plot_temp_evolution_by_latitude(dataset):
 def plot_world_temp_evolution(dataset):
     res = {}
     res['world'] = get_world_temperature(dataset)
-    generic_plot_temp_evolution(res, ['world'])
+    return generic_plot_temp_evolution(res, ['world'])
 
 
 def generic_plot_temp_evolution(dataset, names, subject=''):
@@ -172,19 +173,19 @@ def generic_plot_temp_evolution(dataset, names, subject=''):
         error_list.append(uncertainty)
         error_list.append(uncertainty)
     if len(names) == 1:
-        plot_data(years_list, y_list, 'Average Temperature Evolution of ' + names[0], 'Years',
+        return plot_data(years_list, y_list, 'Average Temperature Evolution of ' + names[0], 'Years',
                   'Average Temperature', ['real data', 'smoothed data'], error_list)
     else:
         labels_list = []
         for i in range(len(names)):
             labels_list.append(names[i] + '(real data)')
             labels_list.append(names[i] + '(smoothed data)')
-        plot_data(years_list, y_list, 'Average Temperature Evolution of ' + subject, 'Years',
+        return plot_data(years_list, y_list, 'Average Temperature Evolution of ' + subject, 'Years',
                   'Average Temperature', labels_list, error_list)
 
 
 def plot_data(x_list, y_list, title, x_label, y_label, y_list_labels, uncertainty_list):
-    plt.figure(figsize=(20, 16))
+    fig = plt.figure(figsize=(20, 16))
     plt.title(title)
     for i in range(len(y_list)):
         plt.errorbar(x_list[i], y_list[i], uncertainty_list[i], label=y_list_labels[i])
@@ -192,6 +193,7 @@ def plot_data(x_list, y_list, title, x_label, y_label, y_list_labels, uncertaint
     plt.ylabel(y_label)
     plt.legend()
     plt.show()
+    return fig
 
 
 def find_most_affected_cities(dataset):
@@ -202,9 +204,10 @@ def find_most_affected_cities(dataset):
         res = dataset[mask]
         delta = res.AverageTemperature.max() - res.AverageTemperature.min()
         delta_values.append(delta)
-    delta_data = pd.DataFrame({'City':city_list, 'Delta':delta_values}).sort_values(by=['Delta'], ascending=False)
-    print('\n # Most affected cities :\n',delta_data.head())
+    delta_data = pd.DataFrame({'City': city_list, 'Delta': delta_values}).sort_values(by=['Delta'], ascending=False)
+    print('\n # Most affected cities :\n', delta_data.head())
     print('\n # Less affected cities :\n', delta_data.tail().sort_values(by='Delta'))
+    return delta_data
 
 
 def find_most_affected_countries(dataset):
@@ -216,9 +219,11 @@ def find_most_affected_countries(dataset):
         res = country_data[mask]
         delta = res.AverageTemperature.max() - res.AverageTemperature.min()
         delta_values.append(delta)
-    delta_data = pd.DataFrame({'Country':country_list, 'Delta':delta_values}).sort_values(by=['Delta'], ascending=False)
-    print('\n # Most affected countries :\n',delta_data.head())
+    delta_data = pd.DataFrame({'Country': country_list, 'Delta': delta_values}).sort_values(by=['Delta'],
+                                                                                            ascending=False)
+    print('\n # Most affected countries :\n', delta_data.head())
     print('\n # Less affected countries :\n', delta_data.tail().sort_values(by='Delta'))
+    return delta_data
 
 
 def show_info_of(dataset):
@@ -233,7 +238,7 @@ def show_info_of(dataset):
     print(dataset.tail(5))
 
 
-if __name__ == '__main__':
+def main_python():
     # Opening dataset
     data = pd.read_csv('./datasets/GlobalLandTemperaturesByMajorCity.csv')
     print('#####################"')
@@ -258,11 +263,11 @@ if __name__ == '__main__':
     print("We can plot some evolution of the average temperature :\n")
     print("here are the available city : \n", data.City.unique())
     city = input("\n Please, enter a city that you want to see his plot temperature :")
-    plot_temp_evolution_of_city(data, [city])
+    fig = plot_temp_evolution_of_city(data, [city])
 
     print("\nHere are the available country : \n", data.Country.unique())
     country = input("\nPlease, enter a country that you want to see his plot temperature :")
-    plot_temp_evolution_of_country(data, [country])
+    fig = plot_temp_evolution_of_country(data, [country])
 
     print("\nHere are the available continent : Asia, Africa, Europe, America, Oceania")
     continent = input("Please, enter a continent that you want to see his plot temperature :")
@@ -285,4 +290,60 @@ if __name__ == '__main__':
             plot_world_temp_evolution(data)
         elif choice != 0:
             print('type 0 to exit')
+
+
+def main_streamlit():
+    # Streamlit
+    app_mode = st.sidebar.selectbox('Select Page',['Exploration','Plot'])
+    data = pd.read_csv('./datasets/GlobalLandTemperaturesByMajorCity.csv')
+
+    if app_mode=='Exploration':
+        st.title("Axel Meloni (Erasmus student) - Programming project 2022-2023")
+        st.write("I used the following dataset for the project : "
+                 "https://www.kaggle.com/datasets/thedevastator/global-land-and-surface-temperature-trends-analy?select=GlobalTemperatures.csv \n"
+                 "\nThe dataset shows the evolution of average temperature over the years from different cities in the world."
+                 " I explored the data to show some interesting aspects and draw differents plots.")
+        st.header("Exploration and Cleaning")
+        st.write("I did a basic exploration of the dataset, I showed some useful data to know :")
+
+        st.caption("the interval of time of the data")
+        st.write('The dates go from', data.dt.min(), 'to', data.dt.max())
+        st.caption('The list of cities')
+        st.code(data.City.unique())
+        st.caption('The list of countries')
+        st.code(data.Country.unique())
+
+        st.write(
+            'the dates were string that I convert into datetime type and I grouped the data by years as the data for each month are too precise for the range of our time (~300years)'
+            '\n\nDuring the exploration I could find that some AverageTemperature and AverageTemperatureUncertainty values were null.'
+            'To clean them I decided to fill the null value with the value of the previous year as it shouldn\'t be a huge difference between two consecutive years.'
+            '\n\nFrom the exploration I could compute the delta of the temperature for each city and each country and thus find the cities and countries the most and less affected by the average temperature evolution')
+
+        delta_cities = find_most_affected_cities(data)
+        delta_country = find_most_affected_countries(data)
+
+        st.caption('Most affected cities')
+        st.write(delta_cities.head())
+        st.caption('Most affected countries')
+        st.write(delta_country.head())
+
+    if app_mode == 'Plot':
+        st.write('I draw some plots to show the evolution of the temperatures.')
+        st.write("The plots render better in the python script and are way faster to display,"
+                 " so I just plot here in streamlit the plots for one countries and for the whole world"
+                 "\n\nThe others are available launching the python script")
+        city = st.selectbox("Choose a city",data.City.unique())
+        st.caption(f'Evolution of average temperature of {city}')
+        fig = plot_temp_evolution_of_city(data, [city])
+        st.pyplot(fig)
+
+        st.caption('Evolution of the world average temperature')
+        fig = plot_world_temp_evolution(data)
+        st.pyplot(fig)
+
+
+# Please Comment The mehod you don't want to use
+if __name__ == '__main__':
+    # main_streamlit()
+    main_python()
 
