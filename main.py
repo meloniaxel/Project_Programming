@@ -118,29 +118,58 @@ def get_temperatures_of(dataset, names, column):
 
 
 def plot_temp_evolution_of_city(dataset, city_name):
-    res = get_temperatures_of(dataset, [city_name], 'City')
+    res = get_temperatures_of(dataset, city_name, 'City')
     generic_plot_temp_evolution(res, city_name)
 
 
 def plot_temp_evolution_of_country(dataset, country_name):
     countries_data = get_temperatures_by_country(dataset)
-    res = get_temperatures_of(countries_data, [country_name], 'Country')
+    res = get_temperatures_of(countries_data, country_name, 'Country')
     generic_plot_temp_evolution(res, country_name)
 
 
-def generic_plot_temp_evolution(dataset, name):
-    years = dataset[name]['dt']
-    temp = dataset[name]['AverageTemperature']
-    rolled_data = dataset[name].AverageTemperature.rolling(15).mean()
-    plot_data(years, [temp, rolled_data], 'Average Temperature Evolution of ' + name, 'Years',
-              'Average Temperature', ['real data', 'smoothed data'])
+def plot_temp_evolution_of_continent(dataset, continent_name):
+    continent_data = get_temperatures_by_continent(dataset)
+    res = get_temperatures_of(continent_data, continent_name, 'Country')
+    generic_plot_temp_evolution(res, continent_name)
 
 
-def plot_data(x, y_list, title, x_label, y_label, y_list_labels):
+def plot_temp_evolution_of_all_continent(dataset):
+    continent_data = get_temperatures_by_continent(dataset)
+    continents = ['Asia', 'Europe', 'America', 'Oceania', 'Africa']
+    res = get_temperatures_of(continent_data, continents, 'Country')
+    generic_plot_temp_evolution(res, continents, 'continents')
+
+
+def generic_plot_temp_evolution(dataset, names, subject=''):
+    years_list = []
+    y_list = []
+    for i in range(len(names)):
+        name = names[i]
+        years = dataset[name]['dt']
+        years_list.append(years)
+        years_list.append(years)
+        temp = dataset[name]['AverageTemperature']
+        rolled_data = dataset[name].AverageTemperature.rolling(15).mean()
+        y_list.append(temp)
+        y_list.append(rolled_data)
+    if len(names) == 1:
+        plot_data(years_list, y_list, 'Average Temperature Evolution of ' + names[0], 'Years',
+                  'Average Temperature', ['real data', 'smoothed data'])
+    else:
+        labels_list = []
+        for i in range(len(names)):
+            labels_list.append(names[i] + '(real data)')
+            labels_list.append(names[i] + '(smoothed data)')
+        plot_data(years_list, y_list, 'Average Temperature Evolution of ' + subject, 'Years',
+                  'Average Temperature', labels_list)
+
+
+def plot_data(x_list, y_list, title, x_label, y_label, y_list_labels):
     plt.figure(figsize=(20, 16))
     plt.title(title)
     for i in range(len(y_list)):
-        plt.plot(x, y_list[i], label=y_list_labels[i])
+        plt.plot(x_list[i], y_list[i], label=y_list_labels[i])
     plt.xlabel(x_label)
     plt.ylabel(y_label)
     plt.legend()
@@ -173,6 +202,8 @@ if __name__ == '__main__':
     tempByCountry = get_temperatures_by_country(data)
     tempByContinent = get_temperatures_by_continent(data)
     tempByLatitude = get_temperatures_by_latitude(data)
-    plot_temp_evolution_of_city(data, 'Abidjan')
-    plot_temp_evolution_of_city(data, 'Paris')
-    plot_temp_evolution_of_country(data, 'United States')
+
+    plot_temp_evolution_of_city(data, ['Abidjan'])
+    plot_temp_evolution_of_country(data, ['United States'])
+    plot_temp_evolution_of_continent(data, ['Europe'])
+    plot_temp_evolution_of_all_continent(data)
