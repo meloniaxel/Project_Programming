@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -115,11 +116,18 @@ def get_temperature_by_latitude(dataset):
 
     return data_by_lat
 
-#def plot_temp_evolution_of_city(dataset, city_names):
+
+def plot_temp_evolution_of_city(dataset, city_name):
+    res = get_temperature_by_city(dataset, [city_name])
+    years = res[city_name]['dt']
+    temp = res[city_name]['AverageTemperature']
+    rolled_data = res[city_name].AverageTemperature.rolling(15).mean()
+    plot_data(years, [temp, rolled_data], 'Average Temperature Evolution of '+city_name, 'Years',
+              'Average Temperature', ['real data', 'smoothed data'])
 
 
 def plot_data(x, y_list, title, x_label, y_label, y_list_labels):
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(20, 16))
     plt.title(title)
     for i in range(len(y_list)):
         plt.plot(x, y_list[i], label=y_list_labels[i])
@@ -155,4 +163,5 @@ if __name__ == '__main__':
     tempByCountry = get_temperature_by_country(data)
     tempByContinent = get_temperature_by_continent(data)
     tempByLatitude = get_temperature_by_latitude(data)
-    #plot_temp_evolution_of_city(data, ['Abidjan'])
+    plot_temp_evolution_of_city(data, 'Abidjan')
+    plot_temp_evolution_of_city(data, 'Paris')
