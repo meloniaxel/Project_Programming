@@ -1,4 +1,5 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 # Rectify the null values by taking the value of the previous row
@@ -107,12 +108,25 @@ def get_temperature_by_latitude(dataset):
     South_regex = '[3-9](.)*S'
     data['Latitude'] = data['Latitude'].replace(Equator_regex, 'Equator', regex=True).replace(
         North_regex, 'North',regex=True).replace(South_regex, 'South', regex=True)
-    data_by_lat = data.groupby(['dt', 'Latitude']).agg(
+    data_by_lat = data.groupby(['Latitude', 'dt']).agg(
         AverageTemperature=('AverageTemperature', 'mean'),
         AverageTemperatureUncertainty=('AverageTemperatureUncertainty', 'mean')).reset_index()
     data_by_lat = data_by_lat.sort_values(by=['Latitude', 'dt'])
 
     return data_by_lat
+
+#def plot_temp_evolution_of_city(dataset, city_names):
+
+
+def plot_data(x, y_list, title, x_label, y_label, y_list_labels):
+    plt.figure(figsize=(10, 8))
+    plt.title(title)
+    for i in range(len(y_list)):
+        plt.plot(x, y_list[i], label=y_list_labels[i])
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.legend()
+    plt.show()
 
 
 def show_info_of(dataset):
@@ -141,4 +155,4 @@ if __name__ == '__main__':
     tempByCountry = get_temperature_by_country(data)
     tempByContinent = get_temperature_by_continent(data)
     tempByLatitude = get_temperature_by_latitude(data)
-    print(tempByLatitude)
+    #plot_temp_evolution_of_city(data, ['Abidjan'])
