@@ -108,6 +108,12 @@ def get_temperatures_by_latitude(dataset):
     return data_by_lat
 
 
+def get_world_temperature(dataset):
+    return data.groupby(['dt']).agg(
+        AverageTemperature=('AverageTemperature', 'mean'),
+        AverageTemperatureUncertainty=('AverageTemperatureUncertainty', 'mean')).reset_index()
+
+
 def get_temperatures_of(dataset, names, column):
     values = {}
     for i in range(len(names)):
@@ -146,6 +152,12 @@ def plot_temp_evolution_by_latitude(dataset):
     latitudes = ['North', 'Equator', 'South']
     res = get_temperatures_of(latitude_data, latitudes, 'Latitude')
     generic_plot_temp_evolution(res, latitudes, 'latitudes')
+
+
+def plot_world_temp_evolution(dataset):
+    res = {}
+    res['world'] = get_world_temperature(dataset)
+    generic_plot_temp_evolution(res, ['world'])
 
 
 def generic_plot_temp_evolution(dataset, names, subject=''):
@@ -210,8 +222,11 @@ if __name__ == '__main__':
     tempByContinent = get_temperatures_by_continent(data)
     tempByLatitude = get_temperatures_by_latitude(data)
 
-    plot_temp_evolution_of_city(data, ['Abidjan'])
-    plot_temp_evolution_of_country(data, ['United States'])
-    plot_temp_evolution_of_continent(data, ['Europe'])
-    plot_temp_evolution_of_all_continent(data)
-    plot_temp_evolution_by_latitude(data)
+    # plot_temp_evolution_of_city(data, ['Abidjan'])
+    # plot_temp_evolution_of_country(data, ['United States'])
+    # plot_temp_evolution_of_continent(data, ['Europe'])
+    # plot_temp_evolution_of_all_continent(data)
+    # plot_temp_evolution_by_latitude(data)
+
+    get_world_temperature(data)
+    plot_world_temp_evolution(data)
