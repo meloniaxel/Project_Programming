@@ -41,4 +41,10 @@ This should be because we had more precise tools to register the temperature in 
 With the graphs we can see that globally the temperatures are rising everywhere but the evolution is more pronounced for countries away from the equator.
 We can also find thanks to the graph showing the evolution of the world temperature that there is a big rise just after 1800 during approximately 15 years (that correspond approximately to the peak of the industrial revolution)
 
+# Git
+
+For the project I used github.
+
+I have opened some issues to follow my progress and to be sure that I didn't forget something to do over the time.
+I have also used different branches to implement main functionality even if it was a little useless as I was the only one working on this project. So I just prohibited the push on master and I was working on other branch and then I was merging my work directly into master when the functionalities were finished.
 
